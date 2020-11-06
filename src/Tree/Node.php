@@ -30,18 +30,23 @@ class Node implements \JsonSerializable
      * @var array
      */
     protected $children = [];
+    /**
+     * @var
+     */
+    protected $childrenKey;
 
     /**
      * @param string|int $id
      * @param string|int $parent
-     * @param array      $properties Associative array of node properties
+     * @param array $properties Associative array of node properties
      */
-    public function __construct($id, $parent, array $properties = [])
+    public function __construct($id, $parent, array $properties = [], $childrenKey = 'children')
     {
         $this->properties = array_change_key_case($properties, CASE_LOWER);
         unset($this->properties['id'], $this->properties['parent']);
         $this->properties['id'] = $id;
         $this->properties['parent'] = $parent;
+        $this->childrenKey = $childrenKey;
     }
 
     /**
@@ -227,8 +232,8 @@ class Node implements \JsonSerializable
     public function __isset($name)
     {
         return 'parent' === $name ||
-               'children' === $name ||
-               array_key_exists(strtolower($name), $this->properties);
+            'children' === $name ||
+            array_key_exists(strtolower($name), $this->properties);
     }
 
     /**
@@ -363,7 +368,7 @@ class Node implements \JsonSerializable
      */
     public function toArray(): array
     {
-        return $this->properties;
+        return array_merge($this->properties, [$this->childrenKey => $this->children]);
     }
 
     /**

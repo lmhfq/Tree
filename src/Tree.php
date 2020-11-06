@@ -2,10 +2,10 @@
 
 namespace BlueM;
 
-use BlueM\Tree\Serializer\FlatTreeJsonSerializer;
 use BlueM\Tree\Exception\InvalidDatatypeException;
 use BlueM\Tree\Exception\InvalidParentException;
 use BlueM\Tree\Node;
+use BlueM\Tree\Serializer\FlatTreeJsonSerializer;
 use BlueM\Tree\Serializer\TreeJsonSerializerInterface;
 
 /**
@@ -37,6 +37,11 @@ class Tree implements \JsonSerializable
      * @var string
      */
     protected $parentKey = 'parent';
+
+    /**
+     * @var string
+     */
+    protected $childrenKey = 'children';
 
     /**
      * @var Node[]
@@ -89,6 +94,13 @@ class Tree implements \JsonSerializable
                 throw new \InvalidArgumentException('Option “parent” must be a string');
             }
             $this->parentKey = $options['parent'];
+        }
+
+        if (!empty($options['children'])) {
+            if (!\is_string($options['children'])) {
+                throw new \InvalidArgumentException('Option “children” must be a string');
+            }
+            $this->childrenKey = $options['children'];
         }
 
         if (!empty($options['jsonserializer'])) {
@@ -164,7 +176,7 @@ class Tree implements \JsonSerializable
      */
     public function getRootNodes(): array
     {
-        return $this->nodes[$this->rootId]->getChildren();
+        return $this->nodes[$this->rootId]->getChildren(true);
     }
 
     /**
@@ -223,7 +235,7 @@ class Tree implements \JsonSerializable
         $children = [];
 
         // Create the root node
-        $this->nodes[$this->rootId] = $this->createNode($this->rootId, null, []);
+        $this->nodes[$this->rootId] = $this->createNode($this->rootId, null, [], $this->childrenKey);
 
         foreach ($data as $row) {
             if ($row instanceof \Iterator) {
@@ -233,7 +245,8 @@ class Tree implements \JsonSerializable
             $this->nodes[$row[$this->idKey]] = $this->createNode(
                 $row[$this->idKey],
                 $row[$this->parentKey],
-                $row
+                $row,
+                $this->childrenKey
             );
 
             if (empty($children[$row[$this->parentKey]])) {
@@ -326,8 +339,8 @@ class Tree implements \JsonSerializable
      *
      * @return Node
      */
-    protected function createNode($id, $parent, array $properties): Node
+    protected function createNode($id, $parent, array $properties, $childrenKey): Node
     {
-        return new Node($id, $parent, $properties);
+        return new Node($id, $parent, $properties, $childrenKey);
     }
 }

@@ -1,5 +1,5 @@
 {
-    "name": "bluem/tree",
+    "name": "lmh/tree",
     "type": "library",
     "description": "Library for handling tree structures based on parent IDs",
     "keywords": ["tree", "hierarchical"],
